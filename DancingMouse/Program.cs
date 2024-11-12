@@ -11,6 +11,17 @@ class DancingMouse
     [DllImport("user32.dll")]
     static extern bool GetCursorPos(out POINT lpPoint);
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
+
+    [Flags]
+    public enum EXECUTION_STATE : uint
+    {
+        ES_CONTINUOUS = 0x80000000,
+        ES_DISPLAY_REQUIRED = 0x00000002,
+        ES_SYSTEM_REQUIRED = 0x00000001
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
     {
@@ -45,6 +56,9 @@ class DancingMouse
         int screenWidth = Console.LargestWindowWidth;
         int screenHeight = Console.LargestWindowHeight;
 
+        // Prevent the system from entering sleep or turning off the display
+        SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS | EXECUTION_STATE.ES_DISPLAY_REQUIRED | EXECUTION_STATE.ES_SYSTEM_REQUIRED);
+
         while (!token.IsCancellationRequested)
         {
             int x = random.Next(0, screenWidth);
@@ -56,5 +70,8 @@ class DancingMouse
 
             await Task.Delay(1000); // Move the mouse every second
         }
+
+        // Clear the execution state flags when the task is cancelled
+        SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS);
     }
 }
