@@ -47,6 +47,7 @@ class DancingMouse
             await Task.Delay(100); // Check for key press every 100ms
         }
 
+
         await moveMouseTask; // Wait for the mouse moving task to complete
     }
 
