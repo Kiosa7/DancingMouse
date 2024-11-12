@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 class DancingMouse
 {
@@ -17,21 +18,35 @@ class DancingMouse
         public int Y;
     }
 
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         Console.WriteLine("Press Escape to close the application.");
 
-        Random random = new Random();
-        int screenWidth = Console.LargestWindowWidth;
-        int screenHeight = Console.LargestWindowHeight;
+        CancellationTokenSource cts = new CancellationTokenSource();
+        Task moveMouseTask = MoveMouseAsync(cts.Token);
 
         while (true)
         {
             if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
             {
+                cts.Cancel();
                 break;
             }
 
+            await Task.Delay(100); // Check for key press every 100ms
+        }
+
+        await moveMouseTask; // Wait for the mouse moving task to complete
+    }
+
+    static async Task MoveMouseAsync(CancellationToken token)
+    {
+        Random random = new Random();
+        int screenWidth = Console.LargestWindowWidth;
+        int screenHeight = Console.LargestWindowHeight;
+
+        while (!token.IsCancellationRequested)
+        {
             int x = random.Next(0, screenWidth);
             int y = random.Next(0, screenHeight);
 
@@ -39,7 +54,7 @@ class DancingMouse
 
             Console.WriteLine($"{DateTime.Now}: 😊 El ratón se ha movido a la posición ({x}, {y})");
 
-            Thread.Sleep(1000); // Move the mouse every second
+            await Task.Delay(1000); // Move the mouse every second
         }
     }
 }
