@@ -11,6 +11,9 @@ class DancingMouse
     [DllImport("user32.dll")]
     static extern bool GetCursorPos(out POINT lpPoint);
 
+    [DllImport("user32.dll")]
+    static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 
@@ -28,6 +31,9 @@ class DancingMouse
         public int X;
         public int Y;
     }
+
+    const int KEYEVENTF_KEYUP = 0x0002;
+    const byte VK_SHIFT = 0x10;
 
     static async Task Main(string[] args)
     {
@@ -47,7 +53,6 @@ class DancingMouse
             await Task.Delay(100); // Check for key press every 100ms
         }
 
-
         await moveMouseTask; // Wait for the mouse moving task to complete
     }
 
@@ -66,6 +71,10 @@ class DancingMouse
             int y = random.Next(0, screenHeight);
 
             SetCursorPos(x, y);
+
+            // Simulate a key press to ensure Teams stays active
+            keybd_event(VK_SHIFT, 0, 0, UIntPtr.Zero);
+            keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
 
             Console.WriteLine($"{DateTime.Now}: 😊 El ratón se ha movido a la posición ({x}, {y})");
 
